@@ -24,7 +24,7 @@ public class CodeGenerator {
 
         // 2、全局配置
         GlobalConfig gc = new GlobalConfig();
-        String projectPath = System.getProperty("user.dir");
+        String projectPath = System.getProperty("user.dir");//E:\IdeaProjects\srb\service-core
         gc.setOutputDir(projectPath + "/src/main/java");
         gc.setAuthor("szx");
         gc.setOpen(false); //生成后是否打开资源管理器
@@ -54,9 +54,9 @@ public class CodeGenerator {
 
         strategy.setColumnNaming(NamingStrategy.underline_to_camel);//数据库表字段映射到实体的命名策略
         strategy.setEntityLombokModel(true); // lombok
-        strategy.setLogicDeleteFieldName("is_deleted");//逻辑删除字段名
+        strategy.setLogicDeleteFieldName("is_deleted");//逻辑删除字段名,添加逻辑删除注解@TableLogic
         strategy.setEntityBooleanColumnRemoveIsPrefix(true);//去掉布尔值的is_前缀（确保tinyint(1)）
-        strategy.setRestControllerStyle(true); //restful api风格控制器
+        strategy.setRestControllerStyle(true); //restful api风格控制器即：@RestController=controller+responseBody
         mpg.setStrategy(strategy);
 
         // 6、执行

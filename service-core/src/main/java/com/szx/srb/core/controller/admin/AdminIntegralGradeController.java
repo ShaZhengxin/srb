@@ -1,7 +1,7 @@
 package com.szx.srb.core.controller.admin;
 
 
-import com.szx.common.exception.BusinessException;
+import com.szx.common.exception.Assert;
 import com.szx.common.result.R;
 import com.szx.common.result.ResponseEnum;
 import com.szx.srb.core.pojo.entity.IntegralGrade;
@@ -9,6 +9,7 @@ import com.szx.srb.core.service.IntegralGradeService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -26,6 +27,7 @@ import java.util.List;
 @CrossOrigin
 @RestController
 @RequestMapping("/admin/core/integralGrade")
+@Slf4j
 public class AdminIntegralGradeController {
     @Resource
     private IntegralGradeService integralGradeService;
@@ -33,6 +35,10 @@ public class AdminIntegralGradeController {
     @ApiOperation("积分等级列表")
     @GetMapping("/list")
     public R listAll(){
+
+        log.info("hi i'm helen");
+        log.warn("warning!!!");
+        log.error("it's a error");
         List<IntegralGrade> list = integralGradeService.list();
         return R.ok().data("list",list).message("获取列表成功");
     }
@@ -55,9 +61,11 @@ public class AdminIntegralGradeController {
     public R save(
             @ApiParam(value = "积分等级对象",required = true)
             @RequestBody IntegralGrade integralGrade){
-        if(integralGrade.getBorrowAmount()== null){
+        //一种写法
+       /* if(integralGrade.getBorrowAmount()== null){
             throw new BusinessException(ResponseEnum.BORROW_AMOUNT_NULL_ERROR);
-        }
+        }*/
+        Assert.notNull(integralGrade.getBorrowAmount(), ResponseEnum.BORROW_AMOUNT_NULL_ERROR);
         boolean result = integralGradeService.save(integralGrade);
         if(result){
             return R.ok().message("保存成功");
