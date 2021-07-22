@@ -35,10 +35,6 @@ public class AdminIntegralGradeController {
     @ApiOperation("积分等级列表")
     @GetMapping("/list")
     public R listAll(){
-
-        log.info("hi i'm helen");
-        log.warn("warning!!!");
-        log.error("it's a error");
         List<IntegralGrade> list = integralGradeService.list();
         return R.ok().data("list",list).message("获取列表成功");
     }
