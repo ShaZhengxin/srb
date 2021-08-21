@@ -9,13 +9,17 @@ import com.szx.srb.core.pojo.dto.ExcelDictDTO;
 import com.szx.srb.core.pojo.entity.Dict;
 import com.szx.srb.core.service.DictService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Resource;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * <p>
@@ -28,6 +32,9 @@ import java.util.List;
 @Slf4j
 @Service
 public class DictServiceImpl extends ServiceImpl<DictMapper, Dict> implements DictService {
+    @Resource
+    private RedisTemplate redisTemplate;
+
     /**事务处理*/
     @Transactional(rollbackFor = Exception.class)
     @Override
@@ -52,6 +59,22 @@ public class DictServiceImpl extends ServiceImpl<DictMapper, Dict> implements Di
 
     @Override
     public List<Dict> listByPatentId(Long parentId) {
+        //首先查询redis中是否存在数据列表
+        try {//快捷键Ctrl+Alt+T
+            List<Dict> dictList= (List<Dict>) redisTemplate.opsForValue().get("srb:core:dictList:" + parentId);
+            if(dictList!=null){
+                log.info("从redis中获取数据列表");
+                //如果存在则从redis中直接返回数据列表
+                return dictList;
+            }
+        } catch (Exception e) {//一旦redis出现问题，不要抛异常出去，可以从数据库中拿数据
+            //捕获异常，将错误跟踪栈字符串追加到日志后面
+            log.error("redis服务异常："+ ExceptionUtils.getStackTrace(e));
+        }
+
+
+        //如果不存在则查询数据库
+        log.info("从数据库中获取数据列表");
         QueryWrapper<Dict> dictQueryMapper = new QueryWrapper<>();
         dictQueryMapper.eq("parent_id",parentId);
         List<Dict> dictList = baseMapper.selectList(dictQueryMapper);
@@ -61,6 +84,16 @@ public class DictServiceImpl extends ServiceImpl<DictMapper, Dict> implements Di
             Boolean hasChildren = this.hasChildren(dict.getId());
             dict.setHasChildren(hasChildren);
         });
+
+        try {//如果存数据时redis服务器出现异常，可能报错，数据列表无法返回，所以这里try/catch
+            //将数据存入redis
+            log.info("将数据存入redis");
+            redisTemplate.opsForValue().set("srb:core:dictList:"+parentId,dictList,5, TimeUnit.MINUTES);
+        } catch (Exception e) {
+            log.error("redis服务异常："+ ExceptionUtils.getStackTrace(e));
+        }
+
+        //返回数据列表
         return dictList;
     }
 
