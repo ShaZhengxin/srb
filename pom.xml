@@ -8,6 +8,7 @@
         <module>service-base</module>
         <module>service-core</module>
         <module>service-sms</module>
+        <module>service-oss</module>
     </modules>
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -185,11 +186,8 @@
                 <artifactId>httpclient</artifactId>
                 <version>${httpclient.version}</version>
             </dependency>
-
-
         </dependencies>
     </dependencyManagement>
-
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
